@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Compass 2026</title>
+  <style>
+    :root{
+      --bg:#0a0e1a;
+      --panel:rgba(255,255,255,.06);
+      --ring:rgba(255,255,255,.15);
+      --text:#fff;
+      --muted:rgba(255,255,255,.8);
+      --gold:#ffd700;
+      --shadow:0 20px 60px rgba(0,0,0,.5);
+      --radius:20px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      margin:0; min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(600px 300px at 50% 0%, rgba(255,215,0,0.15), transparent),
+        radial-gradient(800px 400px at 20% 80%, rgba(255,105,180,0.12), transparent),
+        radial-gradient(800px 400px at 80% 80%, rgba(138,43,226,0.12), transparent),
+        #0a0e1a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      overflow-x:hidden;
+    }
+
+    .card{
+      width:100%;
+      max-width:440px;
+      padding:24px 20px;
+      border-radius:var(--radius);
+      background:var(--panel);
+      border:1px solid var(--ring);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+      position:relative;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .topControls{
+      position:absolute;
+      top:12px;
+      left:12px;
+      display:flex;
+      gap:10px;
+      z-index:120;
+    }
+
+    .pillBtn{
+      height:36px;
+      padding:0 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.1);
+      border:1px solid var(--ring);
+      color:var(--text);
+      cursor:pointer;
+      font-size:13px;
+      font-weight:600;
+      transition:all .2s;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .pillBtn:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
+    .pillBtn:active{transform:translateY(0px)}
+
+    .musicControl{
+      position:absolute;
+      top:12px;
+      right:12px;
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background:rgba(255,255,255,.1);
+      border:1px solid var(--ring);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      font-size:16px;
+      transition:all .2s;
+      z-index:120;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .musicControl:hover{
+      background:rgba(255,255,255,.15);
+      transform:scale(1.05);
+    }
+
+    /* Compass screen */
+    .title{
+      text-align:center;
+      margin:0 0 18px;
+      font-size:clamp(20px,5vw,26px);
+      font-weight:700;
+      letter-spacing:1px;
+      text-shadow:0 2px 12px rgba(255,215,0,.3);
+      padding-top:26px; /* makes space for top controls */
+    }
+    .year2026{
+      display:inline-block;
+      color:var(--gold);
+      animation:glow 2s ease-in-out infinite;
+    }
+    @keyframes glow{
+      0%,100%{text-shadow:0 0 20px rgba(255,215,0,.6)}
+      50%{text-shadow:0 0 30px rgba(255,215,0,.9),0 0 40px rgba(255,215,0,.6)}
+    }
+
+    /* Make compass always centered inside the card */
+    #screenCompass{
+      display:flex;
+      flex-direction:column;
+    }
+    .compassWrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:14px 0 8px;
+      position:relative;
+      width:100%;
+    }
+
+    .firework{
+      position:absolute;
+      width:4px;
+      height:4px;
+      border-radius:50%;
+      pointer-events:none;
+    }
+
+    /* Slightly smaller compass */
+    .compass{
+      width:min(340px,88vw);
+      aspect-ratio:1/1;
+      border-radius:50%;
+      border:2px solid var(--gold);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,215,0,0.08), transparent 60%),
+        radial-gradient(circle at 70% 75%, rgba(255,105,180,0.06), transparent 60%),
+        rgba(255,255,255,0.03);
+      position:relative;
+      overflow:visible;
+      box-shadow:
+        0 0 40px rgba(255,215,0,.25),
+        inset 0 0 60px rgba(255,215,0,.1),
+        0 20px 50px rgba(0,0,0,.4);
+      margin:0 auto;
+    }
+    .compass::before{
+      content:"";
+      position:absolute;
+      inset:-3px;
+      border-radius:50%;
+      background:linear-gradient(45deg,transparent,rgba(255,215,0,.3),transparent);
+      animation:rotate 4s linear infinite;
+      z-index:-1;
+    }
+    @keyframes rotate{to{transform:rotate(360deg)}}
+    .compass::after{
+      content:"";
+      position:absolute;
+      inset:15%;
+      border-radius:50%;
+      border:1px dashed rgba(255,215,0,0.3);
+    }
+    .cross::before,.cross::after{
+      content:"";
+      position:absolute;
+      background:linear-gradient(rgba(255,215,0,0.3),rgba(255,215,0,0.1));
+      border-radius:2px;
+    }
+    .cross::before{width:2px;height:82%;left:50%;top:9%;transform:translateX(-50%)}
+    .cross::after{height:2px;width:82%;top:50%;left:9%;transform:translateY(-50%)}
+
+    /* BUTTON TRANSFORM FIX:
+       Use --base-transform so scaling never overwrites centering translate.
+    */
+    .dirBtn{
+      position:absolute;
+      width:100px;
+      height:50px;
+      border-radius:25px;
+      border:2px solid var(--gold);
+      background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,215,0,.05));
+      color:var(--gold);
+      cursor:pointer;
+      box-shadow:
+        0 0 20px rgba(255,215,0,.3),
+        0 8px 20px rgba(0,0,0,.3);
+      transition:transform .15s, background .2s, box-shadow .2s;
+      display:grid;
+      place-items:center;
+      font-weight:700;
+      font-size:13px;
+      letter-spacing:1.2px;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+
+      transform: var(--base-transform);
+    }
+    .dirBtn:hover{
+      transform: var(--base-transform) scale(1.08);
+      background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,215,0,.15));
+      box-shadow:
+        0 0 30px rgba(255,215,0,.5),
+        0 12px 30px rgba(0,0,0,.4);
+    }
+    .dirBtn:active{transform: var(--base-transform) scale(1.02)}
+    .dirBtn.pressed{transform: var(--base-transform) scale(0.95)}
+
+    .N{top:10px;left:50%; --base-transform: translateX(-50%);}
+    .S{bottom:10px;left:50%; --base-transform: translateX(-50%);}
+    .E{right:8px;top:50%; --base-transform: translateY(-50%);}
+    .W{left:8px;top:50%; --base-transform: translateY(-50%);}
+
+    .center{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+    }
+    .core{
+      width:96px;
+      height:96px;
+      border-radius:50%;
+      background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,215,0,.05));
+      border:2px solid var(--gold);
+      display:grid;
+      place-items:center;
+      text-align:center;
+      box-shadow:
+        0 0 30px rgba(255,215,0,.3),
+        inset 0 0 20px rgba(255,215,0,.1);
+    }
+    .core b{
+      font-size:30px;
+      color:var(--gold);
+      text-shadow:0 0 15px rgba(255,215,0,.6);
+      display:block;
+      letter-spacing:2px;
+    }
+
+    /* Result screen */
+    .resultTitle{
+      margin:0 0 12px;
+      font-size:clamp(22px,5.5vw,28px);
+      text-align:center;
+      color:var(--gold);
+      font-weight:700;
+      text-shadow:0 0 20px rgba(255,215,0,.5);
+      padding-top:26px; /* space for top controls */
+    }
+    .resultSubtitle{
+      text-align:center;
+      font-size:clamp(15px,4vw,18px);
+      color:var(--muted);
+      margin:0 0 16px;
+      font-style:italic;
+    }
+    .resultText{
+      margin:12px 0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:clamp(14px,3.8vw,16px);
+      text-align:left;
+    }
+    .quote{
+      background:rgba(255,215,0,.08);
+      border-left:3px solid var(--gold);
+      padding:12px 16px;
+      margin:16px 0;
+      border-radius:8px;
+      font-style:italic;
+      color:var(--muted);
+      font-size:clamp(13px,3.5vw,15px);
+      line-height:1.6;
+    }
+    .quote strong{
+      display:block;
+      margin-top:8px;
+      font-style:normal;
+      color:var(--gold);
+      font-size:clamp(12px,3.2vw,14px);
+    }
+    .actions{
+      display:flex;
+      justify-content:center;
+      margin-top:20px;
+    }
+    .btn{
+      cursor:pointer;
+      padding:12px 20px;
+      border-radius:12px;
+      border:2px solid var(--gold);
+      background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,215,0,.05));
+      color:var(--gold);
+      font-size:14px;
+      font-weight:600;
+      transition:all .2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn:hover{
+      transform:translateY(-2px);
+      background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,215,0,.15));
+      box-shadow:0 0 20px rgba(255,215,0,.4);
+    }
+
+    .hidden{display:none}
+
+    @media(max-width:380px){
+      .card{padding:20px 16px}
+      .dirBtn{width:90px;height:46px;font-size:12px}
+      .core{width:90px;height:90px}
+      .core b{font-size:28px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+
+    <!-- Top left controls -->
+    <div class="topControls">
+      <button class="pillBtn" id="langToggle" title="Translate / ትርጉም">
+        🌐 <span id="langLabel">ትግርኛ</span>
+      </button>
+    </div>
+
+    <button class="musicControl" id="musicToggle" title="Toggle Music">🔊</button>
+
+    <!-- Screen 1: Compass -->
+    <section id="screenCompass">
+      <h1 class="title" id="mainTitle">Choose Your Direction for <span class="year2026">2026</span></h1>
+
+      <div class="compassWrap">
+        <div class="compass" aria-label="Compass with four directions">
+          <div class="cross"></div>
+
+          <button class="dirBtn N" data-dir="North" id="btnNorth">NORTH</button>
+          <button class="dirBtn E" data-dir="East" id="btnEast">EAST</button>
+          <button class="dirBtn S" data-dir="South" id="btnSouth">SOUTH</button>
+          <button class="dirBtn W" data-dir="West" id="btnWest">WEST</button>
+
+          <div class="center">
+            <div class="core">
+              <b>2026</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 2: Result -->
+    <section id="screenResult" class="hidden">
+      <h2 class="resultTitle" id="resultTitle">—</h2>
+      <p class="resultSubtitle" id="resultSubtitle">—</p>
+      <div id="resultContent"></div>
+      <div class="actions">
+        <button class="btn" id="backBtn">← Back to Compass</button>
+      </div>
+    </section>
+  </div>
+
+  <iframe id="youtubePlayer" style="display:none" allow="autoplay"></iframe>
+
+  <script>
+    const screenCompass = document.getElementById("screenCompass");
+    const screenResult = document.getElementById("screenResult");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultSubtitle = document.getElementById("resultSubtitle");
+    const resultContent = document.getElementById("resultContent");
+    const backBtn = document.getElementById("backBtn");
+    const musicToggle = document.getElementById("musicToggle");
+    const youtubePlayer = document.getElementById("youtubePlayer");
+
+    const mainTitle = document.getElementById("mainTitle");
+    const langToggle = document.getElementById("langToggle");
+    const langLabel = document.getElementById("langLabel");
+    const btnNorth = document.getElementById("btnNorth");
+    const btnEast = document.getElementById("btnEast");
+    const btnSouth = document.getElementById("btnSouth");
+    const btnWest = document.getElementById("btnWest");
+
+    let musicPlaying = false;
+
+    // Initialize YouTube player
+    function initMusic() {
+      youtubePlayer.src = "https://www.youtube.com/embed/2sp5HeLNW5o?autoplay=1&loop=1&playlist=2sp5HeLNW5o&controls=0&enablejsapi=1";
+      musicPlaying = true;
+      musicToggle.textContent = "🔊";
+    }
+
+    musicToggle.addEventListener("click", () => {
+      if (!youtubePlayer.src) {
+        initMusic();
+      } else if (musicPlaying) {
+        youtubePlayer.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        musicPlaying = false;
+        musicToggle.textContent = "🔇";
+      } else {
+        youtubePlayer.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        musicPlaying = true;
+        musicToggle.textContent = "🔊";
+      }
+    });
+
+    // Auto-start music on first interaction
+    let musicStarted = false;
+    document.addEventListener("click", () => {
+      if (!musicStarted) {
+        initMusic();
+        musicStarted = true;
+      }
+    }, { once: true });
+
+    // Fireworks animation (optimized to avoid mobile freezes)
+    let fireworksInterval = null;
+
+    function createFirework() {
+      // Only run when compass screen is visible
+      if (screenCompass.classList.contains("hidden")) return;
+
+      const compassWrap = document.querySelector(".compassWrap");
+      if (!compassWrap) return;
+
+      const colors = ["#ffd700", "#ff69b4", "#8a2be2", "#00ff88", "#ff4444"];
+
+      for (let i = 0; i < 12; i++) {
+        const firework = document.createElement("div");
+        firework.className = "firework";
+        const col = colors[Math.floor(Math.random() * colors.length)];
+        firework.style.background = col;
+
+        const angle = (Math.PI * 2 * i) / 12;
+        const distance = 90 + Math.random() * 70;
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+
+        firework.style.left = "50%";
+        firework.style.top = "50%";
+        firework.style.boxShadow = `0 0 10px ${col}`;
+
+        compassWrap.appendChild(firework);
+
+        const anim = firework.animate([
+          { transform: "translate(-50%, -50%) scale(0)", opacity: 1 },
+          { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1)`, opacity: 0 }
+        ], {
+          duration: 900 + Math.random() * 450,
+          easing: "ease-out"
+        });
+
+        anim.onfinish = () => firework.remove();
+      }
+    }
+
+    function startFireworks() {
+      if (fireworksInterval) return;
+      fireworksInterval = setInterval(createFirework, 3800);
+      setTimeout(createFirework, 450);
+    }
+
+    function stopFireworks() {
+      if (!fireworksInterval) return;
+      clearInterval(fireworksInterval);
+      fireworksInterval = null;
+    }
+
+    startFireworks();
+
+    // Content in two languages
+    const contentByLang = {
+      en: {
+        ui: {
+          title: 'Choose Your Direction for <span class="year2026">2026</span>',
+          north: "NORTH",
+          east: "EAST",
+          south: "SOUTH",
+          west: "WEST",
+          back: "← Back to Compass",
+          toggleLabel: "ትግርኛ" // button shows what you can switch TO
+        },
+        content: {
+          West: {
+            title: "WEST - Reflection",
+            subtitle: "Looking Back to Move Forward",
+            text: "I know 2025 taught you things, maybe some lessons you didn’t ask for. West is your moment to look back without beating yourself up. In 2026, don’t carry old regret into new days. Keep the lesson, drop the shame. Reflect, realign, then walk forward lighter.",
+            quotes: [
+              { text: "We do not learn from experience... we learn from reflecting on experience.", author: "John Dewey" },
+              { text: "The unexamined life is not worth living.", author: "Socrates" },
+              { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle" }
+            ]
+          },
+          East: {
+            title: "EAST - New Beginnings",
+            subtitle: "The Dawn of Fresh Possibilities",
+            text: "I know starting again can feel heavy, like “what if I fail?” But listen: in 2026 you don’t need to be perfect, you just need to begin. One step is enough. You’re not restarting because you’re weak, you’re restarting because you’re brave enough to try again.",
+            quotes: [
+              { text: "Every new beginning comes from some other beginning's end.", author: "Seneca" },
+              { text: "Every action you take is a vote for the type of person you wish to become", author: "James Clear, Atomic Habits" },
+              { text: "See, I am doing a new thing", author: "Isaiah 43:19" }
+            ]
+          },
+          North: {
+            title: "NORTH - Discipline",
+            subtitle: "The Path of Consistency and Growth",
+            text: "I know you already have discipline in you, you’re not lazy, you’re just human. In 2026, don’t try to become perfect. Add one small habit that proves you’re serious: show up even on the boring days. Quiet consistency will build the life you keep dreaming about.",
+            quotes: [
+              { text: "Whatever you do, work at it with all your heart, as working for the Lord.", author: "Colossians 3:23" },
+              { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Aristotle" },
+              { text: "It always seems impossible until it’s done.", author: "Nelson Mandela" }
+            ]
+          },
+          South: {
+            title: "SOUTH - Motivation",
+            subtitle: "Igniting Your Inner Fire",
+            text: "I know you can push, but you also need fuel. South is motivation: keep your spirit alive, protect your energy, and celebrate progress. In 2026, don’t only chase results. Keep your joy, because joy is what keeps you going when motivation fades.",
+            quotes: [
+              { text: "Let us not become weary in doing good, for at the proper time we will reap a harvest.", author: "Galatians 6:9" },
+              { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+              { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" }
+            ]
+          }
+        }
+      },
+
+      // NOTE: Quotes are kept in original English to avoid misquoting.
+      ti: {
+        ui: {
+          title: 'ን<span class="year2026">2026</span> ኣቕጣጫኻ ምረጽ',
+          north: "ሰሜን",
+          east: "ምብራቕ",
+          south: "ደቡብ",
+          west: "ምዕራብ",
+          back: "← ናብ ኮምፓስ ተመለስ",
+          toggleLabel: "English"
+        },
+        content: {
+          West: {
+            title: "ምዕራብ - ምግምጋም",
+            subtitle: "ንድሕሪት ክትርኢ እና ንቕድሚት ክትከይድ",
+            text: "2025 ብዙሕ ትምህርቲ ሃብካ ይኸውን—እንተዘይጠለብካዮ’ውን። ምዕራብ ማለት ንድሕሪት ምርኣይ እንተ ተመልስካ እንታይ ምማርካ እንጂ ንነብስኻ ምቕጻዕ ኣይኮነን። ኣብ 2026 ድሕሪት ናይ ትሕዝቶ እና ጸገም ኣብ ሓድሽ መዓልታት ኣይትሸከም። ትምህርቲ ኣክብር፣ ሓፍረት ግን ኣርሕቕ። ሕሰብ፣ መልስ ግበር፣ እና ቀሊል ንቕድሚት ተመራመር።",
+            quotes: contentByLang?.en?.content?.West?.quotes ?? [] // (won't run here; just a reminder)
+          },
+          East: {
+            title: "ምብራቕ - ሓድሽ ምጀመር",
+            subtitle: "ናይ ሓድሽ እትምረጽ ክሳብ ፍትሒ",
+            text: "ሓድሽ ምጀመር ከቢድ ክስምዕ ይኽእል—“እንተ ፈለጥኩ እንታይ ይኸውን?” ይኹን እምበር፣ ኣብ 2026 ፍጹም ክትከውን ኣይኣለካን፤ ክትጀምር ጥራይ እዩ ዘድሊ። ሓደ እግሪ ይኣክል። እንደገና ትጀምር ዘለኻ ምኽንያቱ ድኹም ስለዘይኮንካ ኣይኮነን—ክትፈትን ዝብዓት ስለዘለካ እዩ።",
+            quotes: []
+          },
+          North: {
+            title: "ሰሜን - ትእዛዝ/ምድላይ",
+            subtitle: "ናይ ቀጻሊ ስራሕ እና ዕብየት መንገዲ",
+            text: "ትእዛዝ ኣብ ውሽጥኻ ኣሎ—ኣንተ ሰነፍ ኣይኮንካን፣ ሰብ ጥራይ ኢኻ። ኣብ 2026 ፍጹም ክትከውን ኣይትጸዓር። ንሓደ ንእሽቶ ልማድ ወስኽ እትብል ዝርከብ፦ ኣብ እቲ ዘይምርካብ መዓልታት’ውን ተገናእ። ጸጥ ቀጻሊ ምንባር ነቲ እትሓልሞ ሕይወት ክዕንግድ እዩ።",
+            quotes: []
+          },
+          South: {
+            title: "ደቡብ - ምንቃሕ/መንቀሳቐስ",
+            subtitle: "ንውሽጣዊ ሓይሊኻ ምብራሕ",
+            text: "ክትገፍእ ትኽእል ኢኻ—ግን ነዳዲ ደጊም የድሊ። ደቡብ ማለት ምንቃሕ እዩ፦ መንፈስኻ ሕይወት ግበር፣ ኃይልኻ ኣከብር፣ እድገትኻ ኣብ መንገዲ ኣስተናግድ። ኣብ 2026 ውጽኢት ጥራይ ኣይትሓደግ። ሓጎስካ ኣይትስንክር—ሓጎስ እዩ እቲ ምንቃሕ ምስ ዝደክም ዝሓግዝካ።",
+            quotes: []
+          }
+        }
+      }
+    };
+
+    // Since we avoided translating quotes (to prevent misquotes), reuse English quotes always:
+    function withEnglishQuotes(obj, dir) {
+      const enQuotes = contentByLang.en.content[dir]?.quotes || [];
+      return { ...obj, quotes: enQuotes };
+    }
+
+    let currentLang = localStorage.getItem("compassLang") || "en";
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem("compassLang", lang);
+
+      const pack = contentByLang[lang];
+      document.documentElement.lang = (lang === "ti" ? "ti" : "en");
+
+      // UI
+      mainTitle.innerHTML = pack.ui.title;
+      btnNorth.textContent = pack.ui.north;
+      btnEast.textContent  = pack.ui.east;
+      btnSouth.textContent = pack.ui.south;
+      btnWest.textContent  = pack.ui.west;
+      backBtn.textContent  = pack.ui.back;
+      langLabel.textContent = pack.ui.toggleLabel;
+
+      // If result is open, rerender it
+      if (!screenResult.classList.contains("hidden")) {
+        showResult(lastDirShown);
+      }
+    }
+
+    langToggle.addEventListener("click", () => {
+      applyLang(currentLang === "en" ? "ti" : "en");
+    });
+
+    let lastDirShown = "North";
+    applyLang(currentLang);
+
+    function showResult(dir) {
+      lastDirShown = dir;
+
+      const langPack = contentByLang[currentLang];
+      let data = langPack.content[dir];
+
+      // Safety: if missing translation, fallback to English
+      if (!data) {
+        data = contentByLang.en.content[dir];
+      }
+
+      // ensure quotes exist (English quotes)
+      if (currentLang === "ti") {
+        data = withEnglishQuotes(data, dir);
+      }
+
+      if (!data) return;
+
+      resultTitle.textContent = data.title;
+      resultSubtitle.textContent = data.subtitle;
+
+      resultContent.innerHTML = `
+        <p class="resultText">${data.text}</p>
+        ${data.quotes.map(q => `
+          <div class="quote">
+            "${q.text}"
+            <strong>— ${q.author}</strong>
+          </div>
+        `).join("")}
+      `;
+
+      // Pause fireworks on result screen for smoother mobile performance
+      stopFireworks();
+
+      screenCompass.classList.add("hidden");
+      screenResult.classList.remove("hidden");
+    }
+
+    document.querySelectorAll(".dirBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        // Press animation without breaking base centering transforms
+        btn.classList.add("pressed");
+        setTimeout(() => btn.classList.remove("pressed"), 150);
+
+        const dir = btn.dataset.dir;
+        showResult(dir);
+      });
+    });
+
+    backBtn.addEventListener("click", () => {
+      screenResult.classList.add("hidden");
+      screenCompass.classList.remove("hidden");
+
+      // Resume fireworks
+      startFireworks();
+      createFirework();
+    });
+  </script>
+</body>
+</html>
