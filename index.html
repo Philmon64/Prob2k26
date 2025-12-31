@@ -42,10 +42,9 @@
       box-shadow:var(--shadow);
       backdrop-filter:blur(12px);
       position:relative;
-      display:flex;
-      flex-direction:column;
     }
 
+    /* top left translate toggle */
     .topControls{
       position:absolute;
       top:12px;
@@ -54,7 +53,6 @@
       gap:10px;
       z-index:120;
     }
-
     .pillBtn{
       height:36px;
       padding:0 12px;
@@ -107,7 +105,7 @@
       font-weight:700;
       letter-spacing:1px;
       text-shadow:0 2px 12px rgba(255,215,0,.3);
-      padding-top:26px; /* makes space for top controls */
+      padding-top:26px; /* space for top controls */
     }
     .year2026{
       display:inline-block;
@@ -119,11 +117,7 @@
       50%{text-shadow:0 0 30px rgba(255,215,0,.9),0 0 40px rgba(255,215,0,.6)}
     }
 
-    /* Make compass always centered inside the card */
-    #screenCompass{
-      display:flex;
-      flex-direction:column;
-    }
+    /* center compass perfectly */
     .compassWrap{
       display:flex;
       justify-content:center;
@@ -132,7 +126,6 @@
       position:relative;
       width:100%;
     }
-
     .firework{
       position:absolute;
       width:4px;
@@ -141,7 +134,7 @@
       pointer-events:none;
     }
 
-    /* Slightly smaller compass */
+    /* slightly smaller compass */
     .compass{
       width:min(340px,88vw);
       aspect-ratio:1/1;
@@ -185,9 +178,7 @@
     .cross::before{width:2px;height:82%;left:50%;top:9%;transform:translateX(-50%)}
     .cross::after{height:2px;width:82%;top:50%;left:9%;transform:translateY(-50%)}
 
-    /* BUTTON TRANSFORM FIX:
-       Use --base-transform so scaling never overwrites centering translate.
-    */
+    /* FIX: do not overwrite the translate transforms (N/S/E/W) */
     .dirBtn{
       position:absolute;
       width:100px;
@@ -335,7 +326,6 @@
 <body>
   <div class="card">
 
-    <!-- Top left controls -->
     <div class="topControls">
       <button class="pillBtn" id="langToggle" title="Translate / ትርጉም">
         🌐 <span id="langLabel">ትግርኛ</span>
@@ -397,9 +387,9 @@
     const btnSouth = document.getElementById("btnSouth");
     const btnWest = document.getElementById("btnWest");
 
+    // ---------------- MUSIC ----------------
     let musicPlaying = false;
 
-    // Initialize YouTube player
     function initMusic() {
       youtubePlayer.src = "https://www.youtube.com/embed/2sp5HeLNW5o?autoplay=1&loop=1&playlist=2sp5HeLNW5o&controls=0&enablejsapi=1";
       musicPlaying = true;
@@ -420,7 +410,6 @@
       }
     });
 
-    // Auto-start music on first interaction
     let musicStarted = false;
     document.addEventListener("click", () => {
       if (!musicStarted) {
@@ -429,15 +418,14 @@
       }
     }, { once: true });
 
-    // Fireworks animation (optimized to avoid mobile freezes)
+    // ---------------- FIREWORKS (optimized) ----------------
     let fireworksInterval = null;
 
     function createFirework() {
-      // Only run when compass screen is visible
       if (screenCompass.classList.contains("hidden")) return;
 
-      const compassWrap = document.querySelector(".compassWrap");
-      if (!compassWrap) return;
+      const wrap = document.querySelector(".compassWrap");
+      if (!wrap) return;
 
       const colors = ["#ffd700", "#ff69b4", "#8a2be2", "#00ff88", "#ff4444"];
 
@@ -456,15 +444,12 @@
         firework.style.top = "50%";
         firework.style.boxShadow = `0 0 10px ${col}`;
 
-        compassWrap.appendChild(firework);
+        wrap.appendChild(firework);
 
         const anim = firework.animate([
           { transform: "translate(-50%, -50%) scale(0)", opacity: 1 },
           { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1)`, opacity: 0 }
-        ], {
-          duration: 900 + Math.random() * 450,
-          easing: "ease-out"
-        });
+        ], { duration: 900 + Math.random() * 450, easing: "ease-out" });
 
         anim.onfinish = () => firework.remove();
       }
@@ -484,7 +469,7 @@
 
     startFireworks();
 
-    // Content in two languages
+    // ---------------- CONTENT (NO SELF-REFERENCE BUG) ----------------
     const contentByLang = {
       en: {
         ui: {
@@ -494,7 +479,7 @@
           south: "SOUTH",
           west: "WEST",
           back: "← Back to Compass",
-          toggleLabel: "ትግርኛ" // button shows what you can switch TO
+          toggleLabel: "ትግርኛ"
         },
         content: {
           West: {
@@ -540,7 +525,7 @@
         }
       },
 
-      // NOTE: Quotes are kept in original English to avoid misquoting.
+      // Quotes are kept in English to avoid misquoting famous quotes.
       ti: {
         ui: {
           title: 'ን<span class="year2026">2026</span> ኣቕጣጫኻ ምረጽ',
@@ -555,38 +540,30 @@
           West: {
             title: "ምዕራብ - ምግምጋም",
             subtitle: "ንድሕሪት ክትርኢ እና ንቕድሚት ክትከይድ",
-            text: "2025 ብዙሕ ትምህርቲ ሃብካ ይኸውን—እንተዘይጠለብካዮ’ውን። ምዕራብ ማለት ንድሕሪት ምርኣይ እንተ ተመልስካ እንታይ ምማርካ እንጂ ንነብስኻ ምቕጻዕ ኣይኮነን። ኣብ 2026 ድሕሪት ናይ ትሕዝቶ እና ጸገም ኣብ ሓድሽ መዓልታት ኣይትሸከም። ትምህርቲ ኣክብር፣ ሓፍረት ግን ኣርሕቕ። ሕሰብ፣ መልስ ግበር፣ እና ቀሊል ንቕድሚት ተመራመር።",
-            quotes: contentByLang?.en?.content?.West?.quotes ?? [] // (won't run here; just a reminder)
+            text: "2025 ብዙሕ ትምህርቲ ሃብካ ይኸውን—እንተዘይጠለብካዮ’ውን። ምዕራብ ማለት ንድሕሪት ምርኣይ እንተ ተመልስካ እንታይ ምማርካ እንጂ ንነብስኻ ምቕጻዕ ኣይኮነን። ኣብ 2026 ድሕሪት ናይ ትሕዝቶ እና ጸገም ኣብ ሓድሽ መዓልታት ኣይትሸከም። ትምህርቲ ኣክብር፣ ሓፍረት ግን ኣርሕቕ። ሕሰብ፣ መልስ ግበር፣ እና ቀሊል ንቕድሚት ተመራመር።"
           },
           East: {
             title: "ምብራቕ - ሓድሽ ምጀመር",
-            subtitle: "ናይ ሓድሽ እትምረጽ ክሳብ ፍትሒ",
-            text: "ሓድሽ ምጀመር ከቢድ ክስምዕ ይኽእል—“እንተ ፈለጥኩ እንታይ ይኸውን?” ይኹን እምበር፣ ኣብ 2026 ፍጹም ክትከውን ኣይኣለካን፤ ክትጀምር ጥራይ እዩ ዘድሊ። ሓደ እግሪ ይኣክል። እንደገና ትጀምር ዘለኻ ምኽንያቱ ድኹም ስለዘይኮንካ ኣይኮነን—ክትፈትን ዝብዓት ስለዘለካ እዩ።",
-            quotes: []
+            subtitle: "ዕድል ዝተኸፍተ ንምጅማር",
+            text: "ሓድሽ ምጀመር ከቢድ ክስምዕ ይኽእል—“እንተ ፈለጥኩ እንታይ ይኸውን?” ኣብ 2026 ፍጹም ክትከውን ኣይኣለካን፤ ክትጀምር ጥራይ እዩ ዘድሊ። ሓደ እግሪ ይኣክል።"
           },
           North: {
-            title: "ሰሜን - ትእዛዝ/ምድላይ",
-            subtitle: "ናይ ቀጻሊ ስራሕ እና ዕብየት መንገዲ",
-            text: "ትእዛዝ ኣብ ውሽጥኻ ኣሎ—ኣንተ ሰነፍ ኣይኮንካን፣ ሰብ ጥራይ ኢኻ። ኣብ 2026 ፍጹም ክትከውን ኣይትጸዓር። ንሓደ ንእሽቶ ልማድ ወስኽ እትብል ዝርከብ፦ ኣብ እቲ ዘይምርካብ መዓልታት’ውን ተገናእ። ጸጥ ቀጻሊ ምንባር ነቲ እትሓልሞ ሕይወት ክዕንግድ እዩ።",
-            quotes: []
+            title: "ሰሜን - ትእዛዝ",
+            subtitle: "ቀጻሊ ስራሕ እና ዕብየት",
+            text: "ትእዛዝ ኣብ ውሽጥኻ ኣሎ። ኣብ 2026 ፍጹም ክትከውን ኣይትጸዓር፤ ኣብ ዝምንጭ መዓልታት’ውን ተገናእ።"
           },
           South: {
-            title: "ደቡብ - ምንቃሕ/መንቀሳቐስ",
-            subtitle: "ንውሽጣዊ ሓይሊኻ ምብራሕ",
-            text: "ክትገፍእ ትኽእል ኢኻ—ግን ነዳዲ ደጊም የድሊ። ደቡብ ማለት ምንቃሕ እዩ፦ መንፈስኻ ሕይወት ግበር፣ ኃይልኻ ኣከብር፣ እድገትኻ ኣብ መንገዲ ኣስተናግድ። ኣብ 2026 ውጽኢት ጥራይ ኣይትሓደግ። ሓጎስካ ኣይትስንክር—ሓጎስ እዩ እቲ ምንቃሕ ምስ ዝደክም ዝሓግዝካ።",
-            quotes: []
+            title: "ደቡብ - ምንቃሕ",
+            subtitle: "መንፈስኻ ምብራሕ",
+            text: "ኣብ 2026 ውጽኢት ጥራይ ኣይትሓደግ። ሓጎስካ ኣከብር—ሓጎስ እዩ እቲ ምንቃሕ ምስ ዝደክም ዝሓግዝካ።"
           }
         }
       }
     };
 
-    // Since we avoided translating quotes (to prevent misquotes), reuse English quotes always:
-    function withEnglishQuotes(obj, dir) {
-      const enQuotes = contentByLang.en.content[dir]?.quotes || [];
-      return { ...obj, quotes: enQuotes };
-    }
-
+    // ---------------- LANGUAGE ----------------
     let currentLang = localStorage.getItem("compassLang") || "en";
+    let lastDirShown = null;
 
     function applyLang(lang) {
       currentLang = lang;
@@ -595,7 +572,6 @@
       const pack = contentByLang[lang];
       document.documentElement.lang = (lang === "ti" ? "ti" : "en");
 
-      // UI
       mainTitle.innerHTML = pack.ui.title;
       btnNorth.textContent = pack.ui.north;
       btnEast.textContent  = pack.ui.east;
@@ -604,9 +580,9 @@
       backBtn.textContent  = pack.ui.back;
       langLabel.textContent = pack.ui.toggleLabel;
 
-      // If result is open, rerender it
-      if (!screenResult.classList.contains("hidden")) {
-        showResult(lastDirShown);
+      // if result open, rerender the same result
+      if (!screenResult.classList.contains("hidden") && lastDirShown) {
+        renderResult(lastDirShown);
       }
     }
 
@@ -614,63 +590,59 @@
       applyLang(currentLang === "en" ? "ti" : "en");
     });
 
-    let lastDirShown = "North";
     applyLang(currentLang);
 
-    function showResult(dir) {
-      lastDirShown = dir;
+    // ---------------- RESULT RENDER ----------------
+    function renderResult(dir) {
+      const pack = contentByLang[currentLang];
+      const enPack = contentByLang.en;
 
-      const langPack = contentByLang[currentLang];
-      let data = langPack.content[dir];
+      const localData = pack.content[dir];
+      const enData = enPack.content[dir];
 
-      // Safety: if missing translation, fallback to English
-      if (!data) {
-        data = contentByLang.en.content[dir];
-      }
+      if (!enData) return;
 
-      // ensure quotes exist (English quotes)
-      if (currentLang === "ti") {
-        data = withEnglishQuotes(data, dir);
-      }
-
-      if (!data) return;
+      // Use local language title/subtitle/text if available, but always use English quotes (safe)
+      const data = localData ? localData : enData;
 
       resultTitle.textContent = data.title;
       resultSubtitle.textContent = data.subtitle;
 
+      const quotes = enData.quotes || [];
+
       resultContent.innerHTML = `
         <p class="resultText">${data.text}</p>
-        ${data.quotes.map(q => `
+        ${quotes.map(q => `
           <div class="quote">
             "${q.text}"
             <strong>— ${q.author}</strong>
           </div>
         `).join("")}
       `;
+    }
 
-      // Pause fireworks on result screen for smoother mobile performance
+    function showResult(dir) {
+      lastDirShown = dir;
+
+      renderResult(dir);
+
       stopFireworks();
-
       screenCompass.classList.add("hidden");
       screenResult.classList.remove("hidden");
     }
 
+    // ---------------- BUTTONS ----------------
     document.querySelectorAll(".dirBtn").forEach(btn => {
       btn.addEventListener("click", () => {
-        // Press animation without breaking base centering transforms
         btn.classList.add("pressed");
         setTimeout(() => btn.classList.remove("pressed"), 150);
-
-        const dir = btn.dataset.dir;
-        showResult(dir);
+        showResult(btn.dataset.dir);
       });
     });
 
     backBtn.addEventListener("click", () => {
       screenResult.classList.add("hidden");
       screenCompass.classList.remove("hidden");
-
-      // Resume fireworks
       startFireworks();
       createFirework();
     });
